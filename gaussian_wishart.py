@@ -31,6 +31,9 @@ def empirical_variance(data, x_bar):
     # matmul [dim, dim]
     S = (1 / n) * torch.matmul(diff_T, diff)
 
+    # cov
+    cov = np.cov(data.T)
+
     return S
 
 
@@ -80,10 +83,10 @@ def posterior_sampling(mu_n_np, lambda_n_np, Phi_n_np, nu_n_np):
     # nu_n = nu_n.numpy()
 
     # sampling wishart dist.
-    sigma = scipy.stats.invwishart.rvs(df=nu_n_np, scale=Phi_n_np, size=1)
+    sigma = scipy.stats.invwishart.rvs(df=nu_n_np, scale=Phi_n_np)
 
     # sampling gaussian dist.
-    mu = scipy.stats.multivariate_normal.rvs(mean=mu_n_np, cov=(1/lambda_n_np) * Phi_n_np)
+    mu = scipy.stats.multivariate_normal.rvs(mean=mu_n_np, cov=(1/lambda_n_np) * sigma)
 
     return mu, sigma
 
@@ -94,6 +97,9 @@ if __name__ == "__main__":
 
     # import data
     x,y = load_global_stat(global_file_path, outlier_file_path)
+
+    # standardize
+    x,y, x_params, y_params = standardize(x,y)
 
     # parameters
     n_count = y.shape[0]
@@ -141,19 +147,16 @@ if __name__ == "__main__":
 
     # data frame
     y_df = make_df(y)
-    sample_df = make_df(sampled_data, classname='sample')
-    df = pd.concat([y_df, sample_df])
-
-    # change column name
-    df.columns = ['1', '2', '3', '4', '5', "type"]
-
-    # DEBUG
-    print(df)
-
+    sample_df = make_df(sampled_data)
+    
     # Make a plot
-    # plot = make_pairplot(df, 'type', "./scatter_plot.png")
-    plot = sns.pairplot(df, hue='type')
-    plot.savefig("./scatter_plot.png")
+        # original data
+    plot_1 = sns.pairplot(y_df, plot_kws={'alpha':0.1})
+    plot_1.savefig("./scatter_plot_1.png")
+
+        # sample data
+    plot_2 = sns.pairplot(sample_df, plot_kws={'alpha':0.1})
+    plot_2.savefig("./scatter_plot_2.png")
     
 
 

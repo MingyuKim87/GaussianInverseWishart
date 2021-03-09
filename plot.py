@@ -6,14 +6,10 @@ import pandas as pd
 
 from data_loader import *
 
-def make_df(data, classname='original'):    
+def make_df(data):    
     if torch.is_tensor(data):
         data = data.numpy()
         
-    property_list = np.array([[classname] * data.shape[0]]).T
-
-    # concatenate
-    data = np.concatenate((data, property_list), axis=1)
     df = pd.DataFrame(data, columns=list(range(data.shape[-1])))
 
     return df
